@@ -10,6 +10,9 @@
       "JenkinsKhan\\": "src/"
     }
   },
+  "require": {
+    "guzzlehttp/guzzle": "^6.3"
+  },
   "require-dev": {
     "atoum/atoum": "2.0.1"
   },

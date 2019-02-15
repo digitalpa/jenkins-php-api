@@ -2,9 +2,12 @@
 
 namespace JenkinsKhan;
 
+use GuzzleHttp\Client;
+
 class Jenkins
 {
 
+    private $guzzle;
     /**
      * @var string
      */
@@ -49,6 +52,7 @@ class Jenkins
     public function __construct($baseUrl)
     {
         $this->baseUrl = $baseUrl;
+        $this->guzzle = new Client(['base_uri' => $this->baseUrl]);
     }
 
     /**
@@ -836,5 +840,17 @@ class Jenkins
         if ($info['http_code'] === 403) {
             throw new \RuntimeException(sprintf('Access Denied [HTTP status code 403] to %s"', $info['url']));
         }
+    }
+
+
+
+    public function getViewData($viewName)
+    {
+        $url = sprintf('/view/%s/api/json?pretty=true', rawurlencode($viewName));
+
+        $response = $this->guzzle->get($url);
+
+        return \json_decode($response->getBody()->getContents(), 1);
+
     }
 }
