@@ -853,4 +853,12 @@ class Jenkins
         return \json_decode($response->getBody()->getContents(), 1);
 
     }
+
+    /**
+     * @return Client
+     */
+    public function getGuzzle()
+    {
+        return $this->guzzle;
+    }
 }
