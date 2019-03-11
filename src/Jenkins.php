@@ -3,6 +3,8 @@
 namespace JenkinsKhan;
 
 use GuzzleHttp\Client;
+use JenkinsKhan\Jenkins\Job;
+use JenkinsKhan\Jenkins\UrlsEnum;
 
 class Jenkins
 {
@@ -861,4 +863,36 @@ class Jenkins
     {
         return $this->guzzle;
     }
+
+
+    public function disableJob(Job $job)
+    {
+
+        $url = UrlsEnum::getJobDisable($job);
+        $this->getGuzzle()->post($url, ['headers' => $this->getCrumbHeaderArray()]);
+
+    }
+
+    public function enableJob(Job $job)
+    {
+        $url = UrlsEnum::getJobEnable($job);
+        $this->getGuzzle()->post($url, ['headers' => $this->getCrumbHeaderArray()]);
+    }
+
+
+    public function getCrumbHeaderArray()
+    {
+        return [$this->crumbRequestField => $this->crumb];
+    }
+
+
+    public function setJobDescription(Job $job, $description)
+    {
+        $url = sprintf('/job/%s/description', rawurlencode($job->getName()));
+        $response = $this->getGuzzle()->post($url,[
+            'headers' => $this->getCrumbHeaderArray(),
+            'form_params'=>['description'=>$description]
+        ]);
+    }
+
 }
