@@ -313,6 +313,7 @@ class Jenkins
      */
     public function deleteJob($jobName)
     {
+
         $url  = sprintf('%s/job/%s/doDelete', $this->baseUrl, $jobName);
         $curl = curl_init($url);
 
@@ -867,9 +868,36 @@ class Jenkins
 
     public function disableJob(Job $job)
     {
+////        $this->enableCrumbs();
+//    $headers = $this->getCrumbHeaderArray();
+//    print_r($headers);
+//        $url = UrlsEnum::getJobDisable($job);
+//        $this->getGuzzle()->post($url, [
+//            'body'=>'',
+//            'headers' => $this->getCrumbHeaderArray()
+//        ]);
 
-        $url = UrlsEnum::getJobDisable($job);
-        $this->getGuzzle()->post($url, ['headers' => $this->getCrumbHeaderArray()]);
+
+
+        $url  = sprintf('%s/job/%s/disable', $this->baseUrl, $job->getName());
+        $curl = curl_init($url);
+
+        curl_setopt($curl, \CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($curl, \CURLOPT_POST, 1);
+
+        $headers = array();
+
+        if ($this->areCrumbsEnabled()) {
+            $headers[] = $this->getCrumbHeader();
+        }
+
+        curl_setopt($curl, \CURLOPT_HTTPHEADER, $headers);
+
+        $ret = curl_exec($curl);
+
+        $this->validateCurl($curl, sprintf('Error disabling job %s on %s', $job->getName(), $this->baseUrl));
+
+
 
     }
 
