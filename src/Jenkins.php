@@ -619,6 +619,18 @@ class Jenkins
     }
 
     /**
+     * @param string $jobname
+     *
+     * @return string
+     */
+    public function getJobJsonConfig($job)
+    {
+        $response = $this->getGuzzle()->get(UrlsEnum::getJobConfig($job));
+
+        return json_decode($response->getBody(),1);
+    }
+
+    /**
      * @param Jenkins\Executor $executor
      *
      * @throws \RuntimeException
