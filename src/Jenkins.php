@@ -4,7 +4,7 @@ namespace JenkinsKhan;
 
 use GuzzleHttp\Client;
 use JenkinsKhan\Jenkins\Job;
-use JenkinsKhan\Jenkins\UrlsEnum;
+use JenkinsKhan\Jenkins\UrlsFactory;
 
 class Jenkins
 {
@@ -625,7 +625,7 @@ class Jenkins
      */
     public function getJobJsonConfig($job)
     {
-        $response = $this->getGuzzle()->get(UrlsEnum::getJobConfig($job));
+        $response = $this->getGuzzle()->get(UrlsFactory::getJobConfig($job));
 
         return json_decode($response->getBody(),1);
     }
@@ -915,7 +915,7 @@ class Jenkins
 
     public function enableJob(Job $job)
     {
-        $url = UrlsEnum::getJobEnable($job);
+        $url = UrlsFactory::getJobEnable($job);
         $this->getGuzzle()->post($url, ['headers' => $this->getCrumbHeaderArray()]);
     }
 

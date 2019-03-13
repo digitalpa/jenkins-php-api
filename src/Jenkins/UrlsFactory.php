@@ -9,7 +9,7 @@
 namespace JenkinsKhan\Jenkins;
 
 
-class UrlsEnum
+class UrlsFactory
 {
 const JOB_ENABLE = '/job/%jobname%/enable';
 const JOB_DISABLE = '/job/%jobname%/disable';
