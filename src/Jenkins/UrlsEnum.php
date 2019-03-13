@@ -15,6 +15,8 @@ const JOB_ENABLE = '/job/%jobname%/enable';
 const JOB_DISABLE = '/job/%jobname%/disable';
 const JOB_CONFIG = '/job/%jobname%/api/json';
 
+const VIEW_DELETE = '/view/%viewname%/doDelete';
+
     public static function getJobDisable(Job $job)
     {
         return strtr(self::JOB_DISABLE,['%jobname%'=>$job->getName()]);
@@ -28,5 +30,10 @@ const JOB_CONFIG = '/job/%jobname%/api/json';
     {
         return strtr(self::JOB_CONFIG,['%jobname%'=> rawurlencode($job->getName())]);
 
+    }
+
+    public static function getViewDelete($view_name)
+    {
+        return strtr(self::VIEW_DELETE,['%viewname%'=> $view_name]);
     }
 }
