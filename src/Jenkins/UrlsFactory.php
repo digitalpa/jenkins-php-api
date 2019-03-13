@@ -16,6 +16,7 @@ const JOB_DISABLE = '/job/%jobname%/disable';
 const JOB_CONFIG = '/job/%jobname%/api/json';
 
 const VIEW_DELETE = '/view/%viewname%/doDelete';
+const VIEW_CONFIG = '/view/%viewpath%';
 
     public static function getJobDisable(Job $job)
     {
@@ -35,5 +36,10 @@ const VIEW_DELETE = '/view/%viewname%/doDelete';
     public static function getViewDelete($view_name)
     {
         return strtr(self::VIEW_DELETE,['%viewname%'=> $view_name]);
+    }
+
+    public static function getViewConfig($viewName)
+    {
+        return strtr(self::VIEW_CONFIG,['%viewpath%'=> str_replace('/','/view/',trim($viewName,'/'))]);
     }
 }
