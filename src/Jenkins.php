@@ -54,7 +54,9 @@ class Jenkins
     public function __construct($baseUrl)
     {
         $this->baseUrl = $baseUrl;
-        $this->guzzle = new Client(['base_uri' => $this->baseUrl]);
+        $this->guzzle = new Client(['base_uri' => $this->baseUrl,'defaults' => [
+            'verify' => 'false'
+        ]]);
     }
 
     /**
@@ -100,17 +102,12 @@ class Jenkins
 
     public function requestCrumb()
     {
-        $url = sprintf('%s/crumbIssuer/api/json', $this->baseUrl);
+        $response = $this->getGuzzle()->get('/crumbIssuer/api/json',[
+            'verify'=>false,
+            'allow_redirects' => false
+        ]);
 
-        $curl = curl_init($url);
-
-        curl_setopt($curl, \CURLOPT_RETURNTRANSFER, 1);
-
-        $ret = curl_exec($curl);
-
-        $this->validateCurl($curl, 'Error getting csrf crumb');
-
-        $crumbResult = json_decode($ret);
+        $crumbResult = json_decode($response->getBody());
 
         if (!$crumbResult instanceof \stdClass) {
             throw new \RuntimeException('Error during json_decode of csrf crumb');
@@ -885,6 +882,7 @@ class Jenkins
     {
 
         if (curl_errno($curl)) {
+            var_dump(curl_errno($curl));
             throw new \RuntimeException($errorMessage);
         }
         $info = curl_getinfo($curl);
