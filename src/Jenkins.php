@@ -895,9 +895,11 @@ class Jenkins
 
     public function getViewData($viewName)
     {
-        $url = sprintf('/view/%s/api/json?pretty=true', rawurlencode($viewName));
+//        $url = sprintf('/view/%s/api/json?pretty=true', rawurlencode($viewName));
 
-        $response = $this->guzzle->get($url);
+        $url = UrlsFactory::getViewConfig($viewName);
+
+        $response = $this->getGuzzle()->get($url.'/api/json?pretty=true',['headers' => $this->getCrumbHeaderArray()]);
 
         return \json_decode($response->getBody()->getContents(), 1);
 
@@ -912,8 +914,16 @@ class Jenkins
     }
 
 
-    public function disableJob(Job $job)
+    public function disableJob( $job)
     {
+
+        if(is_string($job)){
+            $jobname = $job;
+
+        }else{
+            $jobname = $job->getName();
+        }
+echo "DISABLE: $jobname\n";
 ////        $this->enableCrumbs();
 //    $headers = $this->getCrumbHeaderArray();
 //    print_r($headers);
@@ -924,7 +934,7 @@ class Jenkins
 //        ]);
 
 
-        $url = sprintf('%s/job/%s/disable', $this->baseUrl, $job->getName());
+        $url = sprintf('%s/job/%s/disable', $this->baseUrl, rawurlencode( $jobname));
         $curl = curl_init($url);
 
         curl_setopt($curl, \CURLOPT_RETURNTRANSFER, 1);
@@ -940,14 +950,21 @@ class Jenkins
 
         $ret = curl_exec($curl);
 
-        $this->validateCurl($curl, sprintf('Error disabling job %s on %s', $job->getName(), $this->baseUrl));
+        $this->validateCurl($curl, sprintf('Error disabling job %s on %s', $jobname, $this->baseUrl));
 
 
     }
 
     public function enableJob(Job $job)
     {
-        $url = UrlsFactory::getJobEnable($job);
+
+        if(is_string($job)){
+            $jobname = $job;
+
+        }else{
+            $jobname = $job->getName();
+        }
+        $url = UrlsFactory::getJobEnable($jobname);
         $this->getGuzzle()->post($url, ['headers' => $this->getCrumbHeaderArray()]);
     }
 
