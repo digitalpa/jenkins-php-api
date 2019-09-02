@@ -977,6 +977,7 @@ echo "DISABLE: $jobname\n";
 
     public function setJobDescription(Job $job, $description)
     {
+        return ;
         $url = sprintf('/job/%s/description', rawurlencode($job->getName()));
         $response = $this->getGuzzle()->post($url, [
             'headers' => $this->getCrumbHeaderArray(),
