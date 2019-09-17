@@ -3,6 +3,7 @@
 namespace JenkinsKhan;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 use JenkinsKhan\Jenkins\Job;
 use JenkinsKhan\Jenkins\UrlsFactory;
 
@@ -53,10 +54,11 @@ class Jenkins
      */
     public function __construct($baseUrl)
     {
+
         $this->baseUrl = $baseUrl;
         $this->guzzle = new Client(['base_uri' => $this->baseUrl,'defaults' => [
             'verify' => 'false'
-        ]]);
+        ],'cookies' => true]);
     }
 
     /**
@@ -310,24 +312,19 @@ class Jenkins
      */
     public function deleteJob($jobName)
     {
+        try{
+        $this->enableCrumbs();
+        $url = sprintf('/job/%s/doDelete', $jobName);
+        $response = $this->getGuzzle()->post($url, [
+            'debug'=>false,
+            'headers' => $this->getCrumbHeaderArray(),
+            'allow_redirects' => false        ]);
 
-        $url = sprintf('%s/job/%s/doDelete', $this->baseUrl, $jobName);
-        $curl = curl_init($url);
+        }catch (ClientException $e){
 
-        curl_setopt($curl, \CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($curl, \CURLOPT_POST, 1);
-
-        $headers = array();
-
-        if ($this->areCrumbsEnabled()) {
-            $headers[] = $this->getCrumbHeader();
+        echo $e->getResponse()->getBody();
+        throw $e;
         }
-
-        curl_setopt($curl, \CURLOPT_HTTPHEADER, $headers);
-
-        $ret = curl_exec($curl);
-
-        $this->validateCurl($curl, sprintf('Error deleting job %s on %s', $jobName, $this->baseUrl));
     }
 
     /**
@@ -584,29 +581,15 @@ class Jenkins
      */
     public function createJob($jobname, $xmlConfiguration)
     {
-        $url = sprintf('%s/createItem?name=%s', $this->baseUrl, $jobname);
-        $curl = curl_init($url);
-        curl_setopt($curl, \CURLOPT_POST, 1);
 
-        curl_setopt($curl, \CURLOPT_POSTFIELDS, $xmlConfiguration);
-        curl_setopt($curl, \CURLOPT_RETURNTRANSFER, 1);
 
-        $headers = array('Content-Type: text/xml');
+        $url = sprintf('/createItem?name=%s', $jobname);
+        $h = array_merge(['Content-Type'=>'text/xml'],$this->getCrumbHeaderArray());
+        $response = $this->getGuzzle()->post($url, [
+            'headers' => $h,
+            'body' => $xmlConfiguration
+        ]);
 
-        if ($this->areCrumbsEnabled()) {
-            $headers[] = $this->getCrumbHeader();
-        }
-
-        curl_setopt($curl, \CURLOPT_HTTPHEADER, $headers);
-
-        $response = curl_exec($curl);
-
-        if (curl_getinfo($curl, CURLINFO_HTTP_CODE) != 200) {
-            throw new \InvalidArgumentException(sprintf('Job %s already exists', $jobname));
-        }
-        if (curl_errno($curl)) {
-            throw new \RuntimeException(sprintf('Error creating job %s', $jobname));
-        }
     }
 
     /**
@@ -882,7 +865,6 @@ class Jenkins
     {
 
         if (curl_errno($curl)) {
-            var_dump(curl_errno($curl));
             throw new \RuntimeException($errorMessage);
         }
         $info = curl_getinfo($curl);
@@ -923,36 +905,14 @@ class Jenkins
         }else{
             $jobname = $job->getName();
         }
-echo "DISABLE: $jobname\n";
-////        $this->enableCrumbs();
-//    $headers = $this->getCrumbHeaderArray();
-//    print_r($headers);
-//        $url = UrlsEnum::getJobDisable($job);
-//        $this->getGuzzle()->post($url, [
-//            'body'=>'',
-//            'headers' => $this->getCrumbHeaderArray()
-//        ]);
 
-
-        $url = sprintf('%s/job/%s/disable', $this->baseUrl, rawurlencode( $jobname));
-        $curl = curl_init($url);
-
-        curl_setopt($curl, \CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($curl, \CURLOPT_POST, 1);
-
-        $headers = array();
-
-        if ($this->areCrumbsEnabled()) {
-            $headers[] = $this->getCrumbHeader();
-        }
-
-        curl_setopt($curl, \CURLOPT_HTTPHEADER, $headers);
-
-        $ret = curl_exec($curl);
-
-        $this->validateCurl($curl, sprintf('Error disabling job %s on %s', $jobname, $this->baseUrl));
-
-
+    $headers = $this->getCrumbHeaderArray();
+        $url = UrlsFactory::getJobDisable($job);
+        $this->getGuzzle()->post($url, [
+            'body'=>'',
+            'headers' => $this->getCrumbHeaderArray(),
+            'allow_redirects' => false
+        ]);
     }
 
     public function enableJob(Job $job)
@@ -977,7 +937,6 @@ echo "DISABLE: $jobname\n";
 
     public function setJobDescription(Job $job, $description)
     {
-        return ;
         $url = sprintf('/job/%s/description', rawurlencode($job->getName()));
         $response = $this->getGuzzle()->post($url, [
             'headers' => $this->getCrumbHeaderArray(),
